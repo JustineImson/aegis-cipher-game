@@ -2,8 +2,8 @@ import React, { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics, RigidBody } from '@react-three/rapier';
 import Ecctrl, { EcctrlAnimation } from 'ecctrl';
-import { Model as Detective } from '../Detective'; 
-
+import { KeyboardControls, Environment } from '@react-three/drei';
+import Detective from '../Detective';
 export default function GameScene({ difficulty = 'Normal' }) {
   const [objective, setObjective] = useState("Find the evidence");
   console.log("Current Difficulty:", difficulty);
@@ -25,23 +25,32 @@ export default function GameScene({ difficulty = 'Normal' }) {
    * predefined internal states to the specific track names in your .glb.
    */
   const animationSet = {
-    idle: 'mixamo.com',
-    walk: 'mixamo.com.001',
-    run: 'mixamo.com.001',       // Fallback for run
-    jump: 'mixamo.com',      // Fallback for jump
-    jumpIdle: 'mixamo.com',
-    jumpLand: 'mixamo.com',
-    fall: 'mixamo.com',      // Fallback for fall
-    action1: 'mixamo.com',
-    action2: 'mixamo.com',
-    action3: 'mixamo.com',
-    action4: 'mixamo.com',
+    idle: 'Armature|mixamo.com',
+    walk: 'mixamo.com',
+    run: 'Armature|mixamo.com',
+    jump: 'Armature|mixamo.com',
+    jumpIdle: 'Armature|mixamo.com',
+    jumpLand: 'Armature|mixamo.com',
+    fall: 'Armature|mixamo.com',
+    action1: 'Armature|mixamo.com',
+    action2: 'Armature|mixamo.com',
+    action3: 'Armature|mixamo.com',
+    action4: 'Armature|mixamo.com',
   };
+
+  const keyboardMap = [
+    { name: 'forward', keys: ['ArrowUp', 'KeyW'] },
+    { name: 'backward', keys: ['ArrowDown', 'KeyS'] },
+    { name: 'leftward', keys: ['ArrowLeft', 'KeyA'] },
+    { name: 'rightward', keys: ['ArrowRight', 'KeyD'] },
+    { name: 'jump', keys: ['Space'] },
+    { name: 'run', keys: ['Shift'] },
+  ];
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       {/* 2D Overlay for Objective */}
-      <div 
+      <div
         style={{
           position: 'absolute',
           top: '20px',
@@ -61,14 +70,16 @@ export default function GameScene({ difficulty = 'Normal' }) {
         Objective: {objective}
       </div>
 
-      <Canvas shadows camera={{ position: [0, 5, 10], fov: 65 }}>
-        {/* Basic lighting required for standard materials and shadows */}
+      <KeyboardControls map={keyboardMap}>
+        <Canvas shadows camera={{ position: [0, 5, 10], fov: 65 }}>
+          <Environment preset="city" />
+          {/* Basic lighting required for standard materials and shadows */}
         <ambientLight intensity={ambientLightIntensity} />
-        <directionalLight 
-          castShadow 
-          position={[10, 10, 5]} 
-          intensity={1.5} 
-          shadow-mapSize={[1024, 1024]} 
+        <directionalLight
+          castShadow
+          position={[10, 10, 5]}
+          intensity={1.5}
+          shadow-mapSize={[1024, 1024]}
         />
 
         <Suspense fallback={null}>
@@ -79,10 +90,10 @@ export default function GameScene({ difficulty = 'Normal' }) {
               It reads keyboard/joystick inputs, calculates forces and velocities,
               manages the camera, and applies movement to the internal RigidBody.
             */}
-            <Ecctrl 
-              camInitDis={-5} 
-              camMaxDis={-7} 
-              maxVelLimit={maxVelLimit} 
+            <Ecctrl
+              camInitDis={-5}
+              camMaxDis={-7}
+              maxVelLimit={maxVelLimit}
               jumpVel={0}
               position={[0, 2, 0]}
             >
@@ -91,8 +102,8 @@ export default function GameScene({ difficulty = 'Normal' }) {
                 (moving, jumping, idle) and dynamically plays/blends the corresponding 
                 animation tracks defined in animationSet.
               */}
-              <EcctrlAnimation 
-                characterURL="/mainChar.glb" 
+              <EcctrlAnimation
+                characterURL="/mainChar.glb"
                 animationSet={animationSet}
               >
                 <Detective />
@@ -108,9 +119,9 @@ export default function GameScene({ difficulty = 'Normal' }) {
             </RigidBody>
 
             {/* Invisible Sensor Clue */}
-            <RigidBody 
-              type="fixed" 
-              position={[5, 0, 5]} 
+            <RigidBody
+              type="fixed"
+              position={[5, 0, 5]}
               sensor
               onIntersectionEnter={(payload) => {
                 // When detective enters sensor
@@ -123,10 +134,11 @@ export default function GameScene({ difficulty = 'Normal' }) {
                 <meshBasicMaterial transparent opacity={0} />
               </mesh>
             </RigidBody>
-            
+
           </Physics>
         </Suspense>
-      </Canvas>
+        </Canvas>
+      </KeyboardControls>
     </div>
   );
 }
