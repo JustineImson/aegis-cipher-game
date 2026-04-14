@@ -9,6 +9,7 @@ export default function Difficulty() {
 
   const handleSelectDifficulty = (diff) => {
     updateSettings({ difficulty: diff });
+    navigate('/story', { state: { difficulty: diff } });
   };
 
   return (

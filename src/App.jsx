@@ -5,6 +5,7 @@ import Settings from './pages/Settings';
 import Difficulty from './pages/Difficulty';
 import TimeAttackMode from './pages/TimeAttackMode';
 import MultiplayerMode from './pages/MultiplayerMode';
+import StoryMode from './pages/StoryMode';
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MainMenu />} />
           <Route path="/tutorial" element={<DefaultPage title="Tutorial" />} />
-          <Route path="/story" element={<DefaultPage title="Story Mode" />} />
+          <Route path="/story" element={<StoryMode />} />
           <Route path="/timeAttack" element={<TimeAttackMode />} />
           <Route path="/multiplayer" element={<MultiplayerMode />} />
           <Route path="/leaderboards" element={<DefaultPage title="Leaderboards" />} />
