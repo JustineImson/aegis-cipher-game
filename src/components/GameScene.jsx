@@ -7,18 +7,19 @@ import Detective from '../Detective';
 import StreetMap from './StreetMap';
 export default function GameScene({ difficulty = 'Normal' }) {
   const [objective, setObjective] = useState("Find the evidence");
+  const [mapReady, setMapReady] = useState(false);
   console.log("Current Difficulty:", difficulty);
 
   // Difficulty Scaling
   let ambientLightIntensity = 0.5;
-  let maxVelLimit = 2.5;
+  let maxVelLimit = 1.5;
 
   if (difficulty === 'Easy') {
     ambientLightIntensity = 0.8;
-    maxVelLimit = 6;
+    maxVelLimit = 1.5;
   } else if (difficulty === 'Hard') {
     ambientLightIntensity = 0.2;
-    maxVelLimit = 2.5;
+    maxVelLimit = 1.5;
   }
 
   // Restore animationSet to fix missing movement states
@@ -67,7 +68,7 @@ export default function GameScene({ difficulty = 'Normal' }) {
         <Canvas shadows camera={{ position: [0, 5, 10], fov: 65 }}>
           <Environment preset="city" />
           {/* Visual sun to improve visual environment details */}
-          <Sky sunPosition={[10, 10, 5]} />
+          <Sky sunPosition={[40, 10, 5]} />
           {/* Basic lighting required for standard materials and shadows */}
           <ambientLight intensity={ambientLightIntensity} />
           <directionalLight
@@ -78,26 +79,31 @@ export default function GameScene({ difficulty = 'Normal' }) {
           />
 
           <Suspense fallback={null}>
-            <Physics debug={false} timeStep="vary">
+            {/* Removed timeStep="vary" — it causes massive delta-time spikes during load, tunneling the character through the floor */}
+            <Physics debug={false}>
 
-              {/* 
-              Ecctrl is the character controller physics wrapper. 
-              It reads keyboard/joystick inputs, calculates forces and velocities,
-              manages the camera, and applies movement to the internal RigidBody.
-            */}
-              <Ecctrl
-                animated={true}
-                animationSet={animationSet}
-                camInitDis={-5}
-                camMaxDis={-7}
-                maxVelLimit={maxVelLimit}
-                jumpVel={0}
-                position={[8, 5, 0]}
-              >
-                <Detective />
-              </Ecctrl>
+              {/* MAP LOADS FIRST: always rendered, signals onLoad when trimesh collider is ready */}
+              <StreetMap position={[0, 0, 0]} onLoad={() => setMapReady(true)} />
 
-              <StreetMap position={[0, 0, 0]} />
+              {/* CHARACTER LOADS SECOND: only spawns after the map's trimesh is fully initialized */}
+              {mapReady && (
+                <Ecctrl
+                  animated={true}
+                  animationSet={animationSet}
+                  camInitDis={-3}
+                  camMaxDis={-5}
+                  maxVelLimit={maxVelLimit}
+                  jumpVel={0}
+                  // Y=2 gives a short safe drop — the map collider is guaranteed ready
+                  position={[8, 2, 0]}
+                  // Shrink the physics capsule to match the smaller model
+                  radius={0.15}
+                  halfHeight={0.3}
+                >
+                  {/* Scale down to door-size (~0.4). Offset Y = -(radius + halfHeight) = -0.45 */}
+                  <Detective scale={[0.54, 0.54, 0.54]} position={[0, -0.9, 0]} />
+                </Ecctrl>
+              )}
 
               {/* Invisible Sensor Clue */}
               <RigidBody

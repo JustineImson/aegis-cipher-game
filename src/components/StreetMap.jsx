@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { RigidBody } from '@react-three/rapier';
 
-export default function StreetMap(props) {
+export default function StreetMap({ onLoad, ...props }) {
   // Load the single, fully-baked .glb file from the public folder
   const { scene } = useGLTF('/streetMap.glb');
 
@@ -14,7 +14,14 @@ export default function StreetMap(props) {
         child.castShadow = true;
       }
     });
-  }, [scene]);
+
+    // Signal that the map is fully loaded and ready for physics
+    if (onLoad) {
+      // Small delay gives Rapier time to build the trimesh collider from the geometry
+      const timer = setTimeout(onLoad, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [scene, onLoad]);
 
   return (
     // 'trimesh' ensures the character walks perfectly on the uneven geometry
