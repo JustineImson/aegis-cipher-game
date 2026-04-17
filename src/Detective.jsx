@@ -52,6 +52,9 @@ export default function Detective(props) {
         if (child.material) {
           child.material.depthWrite = true;
           child.material.alphaTest = 0.5;
+
+          // FORCE THE MATERIAL TO RECOMPILE WITH SHADOWS
+          child.material.needsUpdate = true;
         }
       }
     });

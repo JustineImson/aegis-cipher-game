@@ -1,24 +1,27 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics, RigidBody } from '@react-three/rapier';
 import Ecctrl from 'ecctrl';
 import { KeyboardControls, Environment, Sky } from '@react-three/drei';
 import Detective from '../Detective';
 import StreetMap from './StreetMap';
+
 export default function GameScene({ difficulty = 'Normal' }) {
   const [objective, setObjective] = useState("Find the evidence");
   const [mapReady, setMapReady] = useState(false);
+  const sunRef = useRef();
+
   console.log("Current Difficulty:", difficulty);
 
-  // Difficulty Scaling
-  let ambientLightIntensity = 0.5;
+  // Difficulty Scaling (Temporarily lowering ambient light so we can easily see shadows!)
+  let ambientLightIntensity = 0.2; 
   let maxVelLimit = 1.5;
 
   if (difficulty === 'Easy') {
-    ambientLightIntensity = 0.8;
+    ambientLightIntensity = 0.3;
     maxVelLimit = 1.5;
   } else if (difficulty === 'Hard') {
-    ambientLightIntensity = 0.2;
+    ambientLightIntensity = 0.1;
     maxVelLimit = 1.5;
   }
 
@@ -65,18 +68,33 @@ export default function GameScene({ difficulty = 'Normal' }) {
       </div>
 
       <KeyboardControls map={keyboardMap}>
-        <Canvas shadows camera={{ position: [0, 5, 10], fov: 65 }}>
-          <Environment preset="city" />
-          {/* Visual sun to improve visual environment details */}
-          <Sky sunPosition={[40, 10, 5]} />
-          {/* Basic lighting required for standard materials and shadows */}
+        {/* Force soft shadows in the Canvas */}
+        <Canvas shadows="PCFSoft" camera={{ position: [0, 5, 10], fov: 65 }}>
+          
+          {/* TEMPORARILY DISABLED: Environment map washes out shadows */}
+          {/* <Environment preset="city" /> */}
+          
+          <Sky sunPosition={[30, 50, 30]} />
           <ambientLight intensity={ambientLightIntensity} />
+
+          {/* DECLARATIVE SHADOW CAMERA: Replaces the buggy useEffect */}
           <directionalLight
+            ref={sunRef}
             castShadow
-            position={[10, 10, 5]}
-            intensity={1.5}
-            shadow-mapSize={[1024, 1024]}
+            position={[30, 50, 30]}
+            intensity={3}
+            shadow-mapSize={[2048, 2048]}
+            shadow-camera-left={-100}
+            shadow-camera-right={100}
+            shadow-camera-top={100}
+            shadow-camera-bottom={-100}
+            shadow-camera-near={0.1}
+            shadow-camera-far={300}
+            shadow-bias={-0.0005}
           />
+
+          {/* Subtle fill light without shadows to brighten the dark sides of buildings */}
+          <directionalLight position={[-20, 30, -20]} intensity={0.5} />
 
           <Suspense fallback={null}>
             {/* Removed timeStep="vary" — it causes massive delta-time spikes during load, tunneling the character through the floor */}
@@ -101,7 +119,7 @@ export default function GameScene({ difficulty = 'Normal' }) {
                   halfHeight={0.3}
                 >
                   {/* Scale down to door-size (~0.4). Offset Y = -(radius + halfHeight) = -0.45 */}
-                  <Detective scale={[0.54, 0.54, 0.54]} position={[0, -0.9, 0]} />
+                  <Detective scale={[0.55, 0.55, 0.55]} position={[0, -0.9, 0]} />
                 </Ecctrl>
               )}
 

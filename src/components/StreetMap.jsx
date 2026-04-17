@@ -12,6 +12,12 @@ export default function StreetMap({ onLoad, ...props }) {
         // Ensure the map can cast and receive shadows from the DirectionalLight
         child.receiveShadow = true;
         child.castShadow = true;
+
+        // CRITICAL: Force the material to recompile with shadow support
+        // Without this, the shader program never includes shadow sampling code
+        if (child.material) {
+          child.material.needsUpdate = true;
+        }
       }
     });
 
@@ -25,7 +31,7 @@ export default function StreetMap({ onLoad, ...props }) {
 
   return (
     // 'trimesh' ensures the character walks perfectly on the uneven geometry
-    <RigidBody type="fixed" colliders="trimesh" {...props}>
+    <RigidBody type="fixed" colliders="trimesh" friction={0.8} restitution={0} {...props}>
       <primitive object={scene} scale={[0.5, 0.5, 0.5]} />
     </RigidBody>
   );
