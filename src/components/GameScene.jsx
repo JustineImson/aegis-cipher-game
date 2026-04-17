@@ -1,10 +1,25 @@
 import React, { Suspense, useState, useRef } from 'react';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { Physics, RigidBody } from '@react-three/rapier';
 import Ecctrl from 'ecctrl';
-import { KeyboardControls, Environment, Sky } from '@react-three/drei';
+import { KeyboardControls, useTexture } from '@react-three/drei';
 import Detective from '../Detective';
 import StreetMap from './StreetMap';
+
+// --- NEW COMPONENT: Custom Skydome ---
+function SkyDome() {
+  // Make sure you have a sky.jpg in your public folder!
+  const texture = useTexture('/sky.jpg');
+  return (
+    <mesh>
+      {/* A massive 200-radius sphere */}
+      <sphereGeometry args={[200, 32, 32]} />
+      {/* BackSide makes the image render on the inside of the sphere */}
+      <meshBasicMaterial map={texture} side={THREE.BackSide} />
+    </mesh>
+  );
+}
 
 export default function GameScene({ difficulty = 'Normal' }) {
   const [objective, setObjective] = useState("Find the evidence");
@@ -14,7 +29,7 @@ export default function GameScene({ difficulty = 'Normal' }) {
   console.log("Current Difficulty:", difficulty);
 
   // Difficulty Scaling (Temporarily lowering ambient light so we can easily see shadows!)
-  let ambientLightIntensity = 0.2; 
+  let ambientLightIntensity = 0.2;
   let maxVelLimit = 1.5;
 
   if (difficulty === 'Easy') {
@@ -40,8 +55,8 @@ export default function GameScene({ difficulty = 'Normal' }) {
     { name: 'backward', keys: ['ArrowDown', 'KeyS'] },
     { name: 'leftward', keys: ['ArrowLeft', 'KeyA'] },
     { name: 'rightward', keys: ['ArrowRight', 'KeyD'] },
-    { name: 'jump', keys: [] },
-    { name: 'run', keys: [] },
+    { name: 'jump', keys: ['Space'] },
+    { name: 'run', keys: ['Shift'] },
   ];
 
   return (
@@ -70,18 +85,18 @@ export default function GameScene({ difficulty = 'Normal' }) {
       <KeyboardControls map={keyboardMap}>
         {/* Force soft shadows in the Canvas */}
         <Canvas shadows="PCFSoft" camera={{ position: [0, 5, 10], fov: 65 }}>
-          
-          {/* TEMPORARILY DISABLED: Environment map washes out shadows */}
-          {/* <Environment preset="city" /> */}
-          
-          <Sky sunPosition={[30, 50, 30]} />
+
+          <Suspense fallback={null}>
+            {/* Render our custom sky image */}
+            <SkyDome />
+          </Suspense>
           <ambientLight intensity={ambientLightIntensity} />
 
           {/* DECLARATIVE SHADOW CAMERA: Replaces the buggy useEffect */}
           <directionalLight
             ref={sunRef}
             castShadow
-            position={[30, 50, 30]}
+            position={[80, 100, -100]}
             intensity={3}
             shadow-mapSize={[2048, 2048]}
             shadow-camera-left={-100}
@@ -123,22 +138,7 @@ export default function GameScene({ difficulty = 'Normal' }) {
                 </Ecctrl>
               )}
 
-              {/* Invisible Sensor Clue */}
-              <RigidBody
-                type="fixed"
-                position={[5, 0, 5]}
-                sensor
-                onIntersectionEnter={(payload) => {
-                  // When detective enters sensor
-                  setObjective("Evidence Found! Case Closed.");
-                }}
-              >
-                <mesh>
-                  <boxGeometry args={[2, 2, 2]} />
-                  {/* Make it invisible as requested */}
-                  <meshBasicMaterial transparent opacity={0} />
-                </mesh>
-              </RigidBody>
+              {/* INVISIBLE SENSOR BOX HAS BEEN REMOVED FROM HERE! */}
 
             </Physics>
           </Suspense>
