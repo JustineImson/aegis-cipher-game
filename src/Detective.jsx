@@ -4,7 +4,7 @@ import { useGLTF, useAnimations, useKeyboardControls } from '@react-three/drei';
 export default function Detective(props) {
   const { scene, animations } = useGLTF('/mainChar.glb');
   const { actions } = useAnimations(animations, scene);
-  const currentAction = useRef(null); 
+  const currentAction = useRef(null);
 
   // Hook directly into the keyboard instead of the physics engine!
   const [subscribeKeys] = useKeyboardControls();
@@ -31,8 +31,8 @@ export default function Detective(props) {
         if (nextAction && currentAction.current !== nextAction) {
           if (currentAction.current) {
             currentAction.current.fadeOut(0.2);
-          } 
-          
+          }
+
           nextAction.reset().fadeIn(0.2).play();
           currentAction.current = nextAction;
         }

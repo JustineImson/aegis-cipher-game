@@ -2,8 +2,9 @@ import React, { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics, RigidBody } from '@react-three/rapier';
 import Ecctrl from 'ecctrl';
-import { KeyboardControls, Environment } from '@react-three/drei';
+import { KeyboardControls, Environment, Sky } from '@react-three/drei';
 import Detective from '../Detective';
+import StreetMap from './StreetMap';
 export default function GameScene({ difficulty = 'Normal' }) {
   const [objective, setObjective] = useState("Find the evidence");
   console.log("Current Difficulty:", difficulty);
@@ -65,6 +66,8 @@ export default function GameScene({ difficulty = 'Normal' }) {
       <KeyboardControls map={keyboardMap}>
         <Canvas shadows camera={{ position: [0, 5, 10], fov: 65 }}>
           <Environment preset="city" />
+          {/* Visual sun to improve visual environment details */}
+          <Sky sunPosition={[10, 10, 5]} />
           {/* Basic lighting required for standard materials and shadows */}
           <ambientLight intensity={ambientLightIntensity} />
           <directionalLight
@@ -89,18 +92,12 @@ export default function GameScene({ difficulty = 'Normal' }) {
                 camMaxDis={-7}
                 maxVelLimit={maxVelLimit}
                 jumpVel={0}
-                position={[0, 2, 0]}
+                position={[8, 5, 0]}
               >
                 <Detective />
               </Ecctrl>
 
-              {/* A static box acting as the ground plane for the player to walk on */}
-              <RigidBody type="fixed" colliders="cuboid" position={[0, -0.5, 0]}>
-                <mesh receiveShadow>
-                  <boxGeometry args={[50, 1, 50]} />
-                  <meshStandardMaterial color="#888888" />
-                </mesh>
-              </RigidBody>
+              <StreetMap position={[0, 0, 0]} />
 
               {/* Invisible Sensor Clue */}
               <RigidBody
