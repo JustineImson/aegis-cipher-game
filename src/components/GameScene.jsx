@@ -21,6 +21,24 @@ function SkyDome() {
   );
 }
 
+// --- NEW COMPONENT: Glowing Door Marker ---
+function DoorMarker({ position }) {
+  return (
+    <mesh position={position}>
+      {/* args: [radiusTop, radiusBottom, height, radialSegments] */}
+      <cylinderGeometry args={[0.3, 0.3, 2, 16]} />
+      <meshBasicMaterial
+        color="#fcd34d" /* A nice mystery-detective gold/yellow */
+        transparent={true}
+        opacity={0.4}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false} /* Prevents it from clipping weirdly with the street */
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
 export default function GameScene({ difficulty = 'Normal' }) {
   const [objective, setObjective] = useState("Find the evidence");
   const [mapReady, setMapReady] = useState(false);
@@ -117,6 +135,20 @@ export default function GameScene({ difficulty = 'Normal' }) {
 
               {/* MAP LOADS FIRST: always rendered, signals onLoad when trimesh collider is ready */}
               <StreetMap position={[0, 0, 0]} onLoad={() => setMapReady(true)} />
+
+              {/* THE GLASS FLOOR (Keep your existing glass floor here) */}
+              <RigidBody type="fixed" position={[0, 0.01, 0]}>
+                <mesh>
+                  <boxGeometry args={[500, 0.01, 500]} />
+                  <meshBasicMaterial transparent opacity={0} />
+                </mesh>
+              </RigidBody>
+
+              {/* --- DOOR MARKERS (Placeholders for developer to move) --- */}
+              <DoorMarker position={[0, 1, 14.3]} />
+              <DoorMarker position={[8.5, 1, 4.3]} />
+              <DoorMarker position={[13.1, 1, -14.2]} />
+              <DoorMarker position={[8, 1, -8.3]} />
 
               {/* CHARACTER LOADS SECOND: only spawns after the map's trimesh is fully initialized */}
               {mapReady && (
