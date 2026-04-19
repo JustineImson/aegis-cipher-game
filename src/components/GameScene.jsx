@@ -242,6 +242,11 @@ export default function GameScene({ difficulty = 'Normal' }) {
                   // ANY map that is not 'city' is indoors. Snap to First-Person!
                   camInitDis={currentMap !== 'city' ? -0.1 : -3}
                   camMaxDis={currentMap !== 'city' ? -0.1 : -5}
+
+                  // --- NEW: LOWER THE CAMERA PIVOT ---
+                  // [X, Y, Z]. A negative Y value (like -0.5) pulls the camera down towards the floor.
+                  camTargetPos={{ x: 0, y: -0.2, z: 0 }}
+
                   camCollision={currentMap === 'city'}
                   maxVelLimit={maxVelLimit}
                   jumpVel={0}
